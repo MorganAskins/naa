@@ -1,0 +1,50 @@
+[
+  {
+    "abundance": "0.932581",
+    "isotope": "39K",
+    "daughter ratio": "",
+    "half life": "stable",
+    "neutron xsection": "1",
+    "daughters": ""
+  },
+  {
+    "abundance": "0.000117",
+    "isotope": "40K",
+    "daughter ratio": "1",
+    "half life": "1.277e9*y",
+    "neutron xsection": "1",
+    "daughters": "40Ca"
+  },
+  {
+    "abundance": "0.0673",
+    "isotope": "41K",
+    "daughter ratio": "",
+    "half life": "stable",
+    "neutron xsection": "1",
+    "daughters": ""
+  },
+  {
+    "abundance": "0",
+    "isotope": "42K",
+    "daughter ratio": "1",
+    "half life": "12.36*h",
+    "neutron xsection": "1",
+    "daughters": "42Ca"
+  },
+  {
+    "abundance": "0.96941",
+    "isotope": "40Ca",
+    "daughter ratio": "",
+    "half life": "stable",
+    "neutron xsection": "1",
+    "daughters": ""
+  },
+  {
+    "abundance": "0.00647",
+    "isotope": "42Ca",
+    "daughter ratio": "",
+    "half life": "stable",
+    "neutron xsection": "1",
+    "daughters": ""
+  }
+]
