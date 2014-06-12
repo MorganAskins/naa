@@ -2,7 +2,7 @@ import json
 import os
 
 def main():
-    keys=['isotope', 'neutron xsection',
+    keys=['isotope', 'neutron xsection', 'neutron product',
           'abundance', 'half life', 'daughters', 'daughter ratio']
     pair=[]
     for el in keys:
