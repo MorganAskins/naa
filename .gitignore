@@ -1,2 +1,7 @@
 data/*
 *.npz
+*~
+#*
+.*~
+.#*
+isotopes_un/*

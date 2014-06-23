@@ -2,6 +2,7 @@ import json
 from math import *
 import numpy as np
 import pylab as lab
+import sys
 
 #globals (units mostly)
 y = 3.15569e7
@@ -28,16 +29,21 @@ def main():
     # Fixed experiment as a test
     #sample = dict(40K=10000, 39K=1000000, 41K=100000)
     dbase = json.load(open('database/dbase.json', 'r'))
-    tot_k = 1*mol
-    sample = {'39K': tot_k*float(search_iso(dbase, '39K')['abundance']),
-              '40K': tot_k*float(search_iso(dbase, '40K')['abundance']),
-              '41K': tot_k*float(search_iso(dbase, '41K')['abundance'])}
+    expmt = json.load(open(input('experiment: '), 'r'))
+    
+    # tot_k = 1*mol
+    sample = expmt[1]
+    for k, v in sample.items():
+        sample.update({k: eval(v)})
+    # sample = {'39K': tot_k*float(search_iso(dbase, '39K')['abundance']),
+    #           '40K': tot_k*float(search_iso(dbase, '40K')['abundance']),
+    #           '41K': tot_k*float(search_iso(dbase, '41K')['abundance'])}
 
-        
+    
     # Assume running at 1 mw so 1mwh = 1 hour
     # Make plot of activity vs time
-    time_axis = np.arange(0, 10*h, step_size)
-    time_neutrons = 1*h
+    time_axis = np.arange(0, eval(expmt[0]['total time']), step_size)
+    time_neutrons = eval(expmt[0]['reactor time'])
     neutron_flux = 2.5e16
     
     ## Save experiment ##
@@ -51,6 +57,8 @@ def main():
     print('Initial sample:', sample)
     last=time_axis[0]
     for time in time_axis:
+        if (time/time_axis[-1]) % 1000:
+            sys.stdout.write('Completion: ' + format(time/time_axis[-1]*100,'.0f')+'%\r')
         # decay each sample
         dt=time-last
         last=time
@@ -67,7 +75,6 @@ def main():
 
 def saver(save, time, output):
     
-    print('saving data')
     names = list(save[-1].keys())    
     events = len(save)
     if len(time) != len(save):
@@ -85,8 +92,6 @@ def saver(save, time, output):
     
         
     np.savez(output, **d)
-        
-    print('data saved')
     return
         
 def decay(sample, db, time):
@@ -102,7 +107,8 @@ def decay(sample, db, time):
         k = log(2) / eval(info['half life'])
         N = Nnot * e**(-k*time)
         sample.update({element:N})
-        add_back.update({info['daughters']: Nnot-N})
+        if Nnot-N > 0.0:
+            add_back.update({info['daughters']: Nnot-N})
 
     # now add the decay products back in
     for element in add_back:
@@ -124,7 +130,8 @@ def reactor(sample, db, time, flux):
         Nnot = sample[element]
         N = Nnot * flux * eval(info['neutron xsection']) * time
         sample.update({element: (Nnot - N)})
-        add_back.update({info['neutron product']: N})
+        if N > 0:
+            add_back.update({info['neutron product']: N})
     for element in add_back:
         if element in sample:
             total = sample[element]+add_back[element]
