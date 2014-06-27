@@ -3,6 +3,7 @@
 
 import sys
 import numpy as np
+import time
 
 def convert(files):
     spe = '.Spe'
@@ -10,7 +11,9 @@ def convert(files):
     for f in files:
         info = grab_info(f)
         x, y = make_data_not_suck(info)
-        np.savez(f.split(spe)[0], info=info, x=x, y=y)
+        livetime, totaltime, starttime = make_info_not_suck(info)
+        np.savez(f.split(spe)[0], info=info, x=x, y=y, livetime=livetime,
+                 totaltime=totaltime, starttime=starttime)
         print('wrote:', f.split(spe)[0])
 
 def grab_info(fname):
@@ -30,6 +33,18 @@ def grab_info(fname):
                 value_str+=line
     d=dict(zip(key, value))
     return dict(zip(key, value))
+
+def make_info_not_suck(webster):
+    # I want to grab true time, live time, start time
+    live_time_str = webster['MEAS_TIM:']
+    livetime = int(live_time_str.split()[0])
+    totaltime = int(live_time_str.split()[1])
+
+    start_time_str = webster['DATE_MEA:']
+    strtime = start_time_str.split('\n')[0]
+    timestruct = time.strptime(strtime, '%m/%d/%Y %H:%M:%S')
+    starttime = time.mktime(timestruct)
+    return livetime, totaltime, starttime
 
 def make_data_not_suck(webster):
     # First line of data is the data range

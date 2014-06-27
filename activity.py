@@ -1,7 +1,8 @@
 import json
 from math import *
 import numpy as np
-import pylab as lab
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import sys
 
 #globals (units mostly)
@@ -53,7 +54,7 @@ def main():
     saveme = []
     
     #### RUN EXPERIMENT ####
-    #lab.ion()
+    #plt.ion()
     print('Initial sample:', sample)
     last=time_axis[0]
     for time in time_axis:

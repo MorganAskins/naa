@@ -2,8 +2,9 @@
 ############ Class to implement fitting in a straight forward way ##############
 ################################################################################
 import numpy as np
-import pylab as lab
-from math import *
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import math
 from scipy.optimize import leastsq as ls
 
 # Two types of graphs we would like to fit, (x,y) coordinates and histograms
@@ -16,7 +17,7 @@ class graph:
         self.x, self.y = x, y
         self.xmin, self.xmax = 0, -1
     def draw(self):
-        lab.plot(self.x[self.xmin:self.xmax], self.y[self.xmin:self.xmax])
+        plt.plot(self.x[self.xmin:self.xmax], self.y[self.xmin:self.xmax])
     def bounds(self, xmin, xmax):
         self.xmin = np.where(self.x>xmin)[0][0]
         self.xmax = np.where(self.x<xmax)[0][-1]
@@ -40,7 +41,7 @@ class function:
     def draw(self, step_size=0.1):
         steps = (self.xmax-self.xmin)/step_size
         x=np.linspace(self.xmin, self.xmax, steps)
-        lab.plot(x, self.func(self.p0, x))
+        plt.plot(x, self.func(self.p0, x))
     
 # Finally a bunch of functions often used in fitting
 gauss = lambda x, m, s: (s**2*2*np.pi)**(-1/2)*np.exp(-1/2*(x-m)**2/s**2)
