@@ -1,4 +1,6 @@
 # Test the pynaa class
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pynaa as naa
 import sys
 
@@ -12,7 +14,12 @@ def main(listoffiles):
         print('ran from', f.tstart, 'to', f.tstop,
               'with a dead time of', f.deadtime, '%')
         f.peaks()
-
+        f.drawdata()
+        f.drawfits()
+        f.drawpeaks()
+        
+    plt.show()
+    
 if __name__ == '__main__':
     main(sys.argv)
     

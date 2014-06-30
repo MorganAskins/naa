@@ -28,15 +28,16 @@ class analyzer:
     Primary analysis tool to compare multiple pynaa.files
     '''
 
-    def __init__(self, files):
+    def __init__(self, files, t_begin=0):
         self.filelist = [naafile(f) for f in files if f.endswith('.npz')]
+        self.t_begin = t_begin
 
     def add_file(self, filename):
         try:
             self.filelist.append(naafile(filename))
         except (NameError, FileNotFoundError, OSError) as er:
             print(er)
-
+    
     
 # Naa data file, as .npz (or later hdf5) ... I'm deprecating .spe
 class naafile:
@@ -72,8 +73,28 @@ class naafile:
         self.tstart = self.data['starttime']
         self.tstop = self.tstart + self.data['totaltime']
         self.deadtime = self.data['livetime']/self.data['totaltime']
-        
-    def peaks(self):
-        pf.find_peaks(self.x, self.y)
 
+    def do_all(self):
+        # Apply all analysis requirements, in order, in one shot
+        self.peaks()
+            
+    def peaks(self):
+        self.fits, self.xpeaks, self.ypeaks = pf.find_peaks(self.x, self.y)
+
+
+    ### Draw options
+    '''
+    These are the available draw options that will draw onto the current
+    matplotlib instance.
+    This can drawpeaks, drawfits, and drawdata
+    '''
         
+    def drawpeaks(self):
+        plt.plot(self.xpeaks, self.ypeaks, 'ro')
+
+    def drawfits(self):
+        for fit in self.fits:
+            fit.draw()
+
+    def drawdata(self):
+        plt.plot(self.x, self.y)

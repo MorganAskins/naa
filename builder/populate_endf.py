@@ -19,7 +19,7 @@ def populate():
         else:
             print(fname, 'is not a tarfile')
 
-    os.remove(fname)
+    #os.remove(fname)
     return
 
 ## Downloader

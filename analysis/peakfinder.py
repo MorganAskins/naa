@@ -1,10 +1,15 @@
 import numpy as np
 import sys, os
-sys.path.append('mfit')
 import mfit as mf
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import math
+
+## Currently a bunch of magic numbers, this can be optimized
+## later to deal with this, in particular not every peak should
+## be treated the same. Peaks that are close should be fit together,
+## and large peaks should have longer tails. Also a guassian doesn't
+## do these spectra justice
 
 def find_peaks(x, y):
     # Peaks should be no wider than 20 points
@@ -46,10 +51,5 @@ def find_peaks(x, y):
         fitter = mf.function(ffunc, p0, x[xmin], x[xmax])
         gr.fit(fitter)
         fits.append(fitter)
-        
-    for fit in fits:
-        fit.draw()
-                    
-    plt.plot(x,y)
-    plt.plot(xp, yp, 'ro')
-    plt.show()
+
+    return fits, xp, yp

@@ -1,0 +1,33 @@
+#!/usr/bin/python3.4
+
+import os, sys
+import populate_endf
+import populate_gammas
+import endf2json
+
+# Download needed files and place into ../database
+
+def main():
+    iamhere = os.getcwd()
+    populate_endf.populate()
+    print('converting all endf files to json')
+    endflocation = iamhere+'/isotopes_un/'
+    files = os.listdir(endflocation)
+    for f in files:
+        endf2json.convert( endflocation+f )
+    # Move the json files and remove the rest
+    jsonlist = [ f for f in os.listdir(endflocation) if f.endswith('.json') ]
+    newlocation = os.path.abspath('../database')+'/'
+    for f in jsonlist:
+        os.rename(endflocation+f, newlocation+f)
+    for badf in files:
+        os.remove(endflocation+badf)
+    os.rmdir(endflocation)
+    print('Finished converting endf to json')
+    populate_gammas.populate()
+    os.rename('gammalist.json', newlocation+'gammalist.json')
+    print('Finished producing gammas')
+    os.remove('iso.tar.gz')
+        
+if __name__ == '__main__':
+    main()
