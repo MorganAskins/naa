@@ -23,6 +23,8 @@ def populate():
 
 def save_to_json(out):
     with open('gammalist.json', 'w') as fname:
+        # Something is weird so lets run some tests
+        print(len(out[0]), len(out[1]), len(out[2]), len(out[3]), len(out[4]))
         keys = [ ele[0] for ele in out ]
         dict_list = []
         for energy, intensity, element, decay, life in \
@@ -54,10 +56,14 @@ def parse(xhtml):
             betterline = betterline.split()[0:5]
             # Strip the errors from the energy
             betterline[0] = re.sub(r'\(.+?\)', '', betterline[0])
+            while len(betterline) < 5:
+                betterline.append('err')
             if betterline[0] != 'E':
                 for idx, ele in enumerate(betterline):
                     elements[idx].append(ele)
-
+            if betterline[2] == 'Br-82':
+                print(betterline)
+                    
     return elements
     
 if __name__ == '__main__':

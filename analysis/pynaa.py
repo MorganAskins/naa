@@ -37,7 +37,8 @@ class analyzer:
             self.filelist.append(naafile(filename))
         except (NameError, FileNotFoundError, OSError) as er:
             print(er)
-    
+
+    # In order to analyze, need json gamma file, 
     
 # Naa data file, as .npz (or later hdf5) ... I'm deprecating .spe
 class naafile:
