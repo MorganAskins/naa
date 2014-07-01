@@ -13,8 +13,11 @@ from scipy.optimize import leastsq as ls
 class graph:
     """ Graph object that can be fit and transformed to a histogram """
     def __init__(self, x, y):
-        """ Build the graph with given x, y lists or np.arrays """
-        self.x, self.y = x, y
+        '''
+        Build the graph with given x, y lists or np.arrays
+        Saves the members as np.arrays for speed
+        ''' 
+        self.x, self.y = np.array(x), np.array(y)
         self.xmin, self.xmax = 0, -1
     def draw(self):
         plt.plot(self.x[self.xmin:self.xmax], self.y[self.xmin:self.xmax])

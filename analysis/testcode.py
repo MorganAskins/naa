@@ -12,7 +12,6 @@ def main(listoffiles):
     # I have built in exceptions so I could remove this and use try catch
     # real_list = [f for f in listoffiles if f.endswith('.npz')]
     physics = naa.analyzer(['test.npz'])
-    halfrange = 1
 
     for f in physics.filelist:
         print('ran from', f.tstart, 'to', f.tstop,
@@ -34,7 +33,7 @@ def peaks2elements(mu, area):
     with open('../database/gammalist.json', 'r') as dbfile:
         db = json.load(dbfile)
         width=1
-        isotopes=[]
+         isotopes=[]
         for m in mu:
             candidates = erangedb(db, m-width, m+width)
             true_candidates = []
