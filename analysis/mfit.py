@@ -19,7 +19,7 @@ class graph:
         Saves the members as np.arrays for speed
         ''' 
         self.x, self.y = np.array(x), np.array(y)
-        self.xmin, self.xmax = 0, -1
+        self.xmin, self.xmax = 0, len(self.x)
     def draw(self):
         plt.plot(self.x[self.xmin:self.xmax], self.y[self.xmin:self.xmax])
     def bounds(self, xmin, xmax):
