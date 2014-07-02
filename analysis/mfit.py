@@ -23,12 +23,12 @@ class graph:
     def draw(self):
         plt.plot(self.x[self.xmin:self.xmax], self.y[self.xmin:self.xmax])
     def bounds(self, xmin, xmax):
-        self.xmin = np.where(self.x>xmin)[0][0]
-        self.xmax = np.where(self.x<xmax)[0][-1]
+        self.xmin = np.where(self.x>=xmin)[0][0]
+        self.xmax = np.where(self.x<=xmax)[0][-1]
     def fit(self, func):#expects a mfit.function
         residual = func.residual()
         p0 = func.p0
-        xmin, xmax = np.where(self.x>func.xmin)[0][0], np.where(self.x<func.xmax)[0][-1]
+        xmin, xmax = np.where(self.x>=func.xmin)[0][0], np.where(self.x<=func.xmax)[0][-1]
         fitout = ls(residual, p0, args=(self.x[xmin:xmax], self.y[xmin:xmax]))
         func.p0, func.covariance = fitout[0], fitout[1]
 
