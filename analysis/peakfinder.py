@@ -19,9 +19,6 @@ def find_peaks(x, y):
     # A peak must be 3 sigma above background
     xp, yp = [], []                       #Peak locations
     x_t, y_t = [], []                     #Temp array
-
-    # Fit each peak to x+k+gauss
-    ffunc = lambda p, x: p[0]*mf.gauss(x, p[1], p[2]) + x*p[3] + p[4]
         
     for xv, yv in zip(x,y):
         x_t.append(xv)
@@ -42,14 +39,29 @@ def find_peaks(x, y):
     fit_distance = 40
     gr = mf.graph(x, y)
     fits=[]
+
+    # Fit each peak to x+k+gauss
+    #ffunc = lambda p, x: p[0]*mf.gauss(x, p[1], p[2]) + x*p[3] + p[4]
+    
+    # for xf, yf in zip(xp, yp):
+    #     peak = np.where(x==xf)[0][0]
+    #     xmin, xmax = (peak-fit_distance), (peak+fit_distance)
+    #     bwidth = (x[xmax]-x[xmin])/len(x[xmin:xmax])
+    #     p0 = [ (sum(y[xmin:xmax]) - len(y[xmin:xmax])*min(y[xmin:xmax]))*bwidth,
+    #             xf, bwidth*5, 1, min(y[xmin:xmax])]
+    #     fitter = mf.function(ffunc, p0, x[xmin], x[xmax])
+    #     gr.fit(fitter)
+    #     fits.append(fitter)
+    ffunc = lambda p, x: p[0]*mf.compshoulder(x, p[1], p[2], p[3])+p[4]
     for xf, yf in zip(xp, yp):
         peak = np.where(x==xf)[0][0]
         xmin, xmax = (peak-fit_distance), (peak+fit_distance)
         bwidth = (x[xmax]-x[xmin])/len(x[xmin:xmax])
-        p0 = [ (sum(y[xmin:xmax]) - len(y[xmin:xmax])*min(y[xmin:xmax]))*bwidth,
-                xf, bwidth*5, 1, min(y[xmin:xmax])]
+        p0 = [ (sum(y[xmin:xmax]) - len(y[xmin:xmax])*min(y[xmin:xmax]))*bwidth/math.pi,
+               xf, 1, 0.5, min(y[xmin:xmax])]
         fitter = mf.function(ffunc, p0, x[xmin], x[xmax])
         gr.fit(fitter)
         fits.append(fitter)
 
+        
     return fits, xp, yp

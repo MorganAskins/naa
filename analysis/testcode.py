@@ -6,6 +6,7 @@ import pynaa as naa
 import sys
 import mfit as mf
 import json
+import copy
 
 def main(listoffiles):
 
@@ -20,20 +21,57 @@ def main(listoffiles):
         xp, yp = f.xpeaks, f.ypeaks
         fits = f.fits
         # The information I need is the mean and integral of the gauss fit
-        integrals = [fitter.p0[0] for fitter in fits]
+        #integrals = [fitter.p0[0] for fitter in fits]
+        integrals = [integrals_from_fits(fitter) for fitter in fits]
         means = [fitter.p0[1] for fitter in fits]
-        peaks2elements(means, integrals)
+        peaks3elements(means, integrals)
         f.drawdata()
         f.drawfits()
         f.drawpeaks()
         
     plt.show()
 
+def integrals_from_fits(fit):
+    newfit = copy.deepcopy(fit)
+    # Without backgrounds:
+    newfit.p0[4]=0
+    xmin, xmax = newfit.xmin, newfit.xmax
+    x = np.arange(xmin, xmax, 1000)
+    width = (xmax-xmin)/1000.0
+    return sum(newfit.func(newfit.p0, x))*width
+        
+
+def peaks3elements(mu, area):
+    # Not using area, area sucks ...
+    with open('../database/gammalist.json', 'r') as dbfile:
+        db = json.load(dbfile)
+        width = 1
+        isotopes = []
+        for m in mu:
+            candidates = erangedb(db, m-width, m+width)
+            true_candidates = []
+            # Only keep candidates which have the top two peaks
+            for c in candidates:
+                top2 = top2Inuclide(db, c['Nuclide'])
+                contains2 = 0
+                for mm in mu:
+                    if (mm < top2[0]+width and mm > top2[0]-width) or \
+                       (mm < top2[1]+width and mm > top2[1]-width):
+                        contains2 += 1
+                if contains2 > 1:
+                    true_candidates.append(c)
+            isotopes.append(true_candidates)
+    
+        for b,m in zip(isotopes,mu):
+            print('Gamma Energy ::', m, ' keV')
+            for ele in b:
+                print(ele['Nuclide'], ' -- Halflife:', ele['Half life(s)'])                    
+    
 def peaks2elements(mu, area):
     with open('../database/gammalist.json', 'r') as dbfile:
         db = json.load(dbfile)
         width=1
-         isotopes=[]
+        isotopes=[]
         for m in mu:
             candidates = erangedb(db, m-width, m+width)
             true_candidates = []
@@ -46,7 +84,7 @@ def peaks2elements(mu, area):
                 if default:
                     true_candidates.append(c)
             isotopes.append(true_candidates)
-        a_err = 0.3
+        a_err = 100
         better_isotopes=[]
         for iso, a in zip(isotopes, area):
             # Check if areas are within 20% expected from intensities
@@ -75,6 +113,21 @@ def maxInuclide(db, nuclide):
             maxI = gamma['Intensity']
             maxE = gamma['Energy(keV)']
     return maxE, maxI
+
+def top2Inuclide(db, nuclide):
+    nuc = [item for item in db if item['Nuclide'] == nuclide]
+    top_energies = [0, 0]
+    i1, i2 = 0, 0
+    for gamma in nuc:                     #first
+        if gamma['Intensity'] > i1:
+            i1=gamma['Intensity']
+            top_energies[0] = gamma['Energy(keV)']
+    for gamma in nuc:                     #second
+        if (gamma['Intensity'] > i2) and (gamma['Intensity'] != i1):
+            i2=gamma['Intensity']
+            top_energies[1] = gamma['Energy(keV)']
+    return top_energies
+          
         
 def searchdb(db, key, value):
     return [item for item in db if item[key] == value]

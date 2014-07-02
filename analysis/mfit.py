@@ -6,6 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import leastsq as ls
+import scipy.special as sp
 
 # Two types of graphs we would like to fit, (x,y) coordinates and histograms
 # We would also like a simple conversion from one to another
@@ -29,13 +30,14 @@ class graph:
         p0 = func.p0
         xmin, xmax = np.where(self.x>func.xmin)[0][0], np.where(self.x<func.xmax)[0][-1]
         fitout = ls(residual, p0, args=(self.x[xmin:xmax], self.y[xmin:xmax]))
-        func.p0 = fitout[0]
+        func.p0, func.covariance = fitout[0], fitout[1]
 
 class function:
     def __init__(self, func, p0=[0], xmin=0, xmax=-1):
         self.p0=p0
         self.xmin, self.xmax = xmin, xmax
         self.func = func
+        self.covariance = 0
     def bounds(self, xmin, xmax):
         self.xmin = xmin
         self.xmax = xmax
@@ -45,7 +47,10 @@ class function:
         steps = (self.xmax-self.xmin)/step_size
         x=np.linspace(self.xmin, self.xmax, steps)
         plt.plot(x, self.func(self.p0, x))
+    def f(self, x):
+        return self.func(self.p0, x)
     
 # Finally a bunch of functions often used in fitting
 gauss = lambda x, m, s: (s**2*2*np.pi)**(-1/2)*np.exp(-1/2*(x-m)**2/s**2)
 breitwigner = lambda x, m, s: 1/( (x**2 - m**2)**2 + (m*s)**2 )
+compshoulder = lambda x, m, a, b: sp.erfc((x-m)/a)*np.exp((x-m)/b)
