@@ -29,7 +29,7 @@ class graph:
         residual = func.residual()
         p0 = func.p0
         xmin, xmax = np.where(self.x>=func.xmin)[0][0], np.where(self.x<=func.xmax)[0][-1]
-        fitout = ls(residual, p0, args=(self.x[xmin:xmax], self.y[xmin:xmax]))
+        fitout = ls(residual, p0, args=(self.x[xmin:(xmax+1)], self.y[xmin:(xmax+1)]))
         func.p0, func.covariance = fitout[0], fitout[1]
 
 class function:
