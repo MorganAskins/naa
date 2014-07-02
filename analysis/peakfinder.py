@@ -62,6 +62,5 @@ def find_peaks(x, y):
         fitter = mf.function(ffunc, p0, x[xmin], x[xmax])
         gr.fit(fitter)
         fits.append(fitter)
-
         
     return fits, xp, yp

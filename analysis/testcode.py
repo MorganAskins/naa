@@ -12,19 +12,14 @@ def main(listoffiles):
 
     # I have built in exceptions so I could remove this and use try catch
     # real_list = [f for f in listoffiles if f.endswith('.npz')]
-    physics = naa.analyzer(['test.npz'])
+    physics = naa.analyzer(listoffiles)
 
     for f in physics.filelist:
-        print('ran from', f.tstart, 'to', f.tstop,
+        print('ran ', f.tstop-f.tstart, 'seconds',
+              'beginning at', f.tstart,
               'with a dead time of', f.deadtime, '%')
-        f.peaks()
-        xp, yp = f.xpeaks, f.ypeaks
-        fits = f.fits
-        # The information I need is the mean and integral of the gauss fit
-        #integrals = [fitter.p0[0] for fitter in fits]
-        integrals = [integrals_from_fits(fitter) for fitter in fits]
-        means = [fitter.p0[1] for fitter in fits]
-        peaks3elements(means, integrals)
+        f.do_all()
+        f.printnuclides()
         f.drawdata()
         f.drawfits()
         f.drawpeaks()
@@ -38,96 +33,7 @@ def integrals_from_fits(fit):
     xmin, xmax = newfit.xmin, newfit.xmax
     x = np.arange(xmin, xmax, 1000)
     width = (xmax-xmin)/1000.0
-    return sum(newfit.func(newfit.p0, x))*width
-        
-
-def peaks3elements(mu, area):
-    # Not using area, area sucks ...
-    with open('../database/gammalist.json', 'r') as dbfile:
-        db = json.load(dbfile)
-        width = 1
-        isotopes = []
-        for m in mu:
-            candidates = erangedb(db, m-width, m+width)
-            true_candidates = []
-            # Only keep candidates which have the top two peaks
-            for c in candidates:
-                top2 = top2Inuclide(db, c['Nuclide'])
-                contains2 = 0
-                for mm in mu:
-                    if (mm < top2[0]+width and mm > top2[0]-width) or \
-                       (mm < top2[1]+width and mm > top2[1]-width):
-                        contains2 += 1
-                if contains2 > 1:
-                    true_candidates.append(c)
-            isotopes.append(true_candidates)
-    
-        for b,m in zip(isotopes,mu):
-            print('Gamma Energy ::', m, ' keV')
-            for ele in b:
-                print(ele['Nuclide'], ' -- Halflife:', ele['Half life(s)'])                    
-    
-def peaks2elements(mu, area):
-    with open('../database/gammalist.json', 'r') as dbfile:
-        db = json.load(dbfile)
-        width=1
-        isotopes=[]
-        for m in mu:
-            candidates = erangedb(db, m-width, m+width)
-            true_candidates = []
-            for c in candidates:
-                emax, imax= maxInuclide(db, c['Nuclide'])
-                default = False
-                for mm in mu:
-                    if mm < emax+width and mm > emax-width:
-                        default = True
-                if default:
-                    true_candidates.append(c)
-            isotopes.append(true_candidates)
-        a_err = 100
-        better_isotopes=[]
-        for iso, a in zip(isotopes, area):
-            # Check if areas are within 20% expected from intensities
-            better_elements = []
-            for element in iso:
-                emax, imax = maxInuclide(db, element['Nuclide'])
-                iratio_true = element['Intensity'] / imax
-                bigarea_max = np.where(np.array(mu)>emax-width)[0][0]
-                bigarea_min = np.where(np.array(mu)<emax+width)[0][-1]
-                iratio_data = a / area[bigarea_min:bigarea_max+1][0]
-                if not (iratio_true > iratio_data*(1+a_err) or
-                        iratio_true < iratio_data*(1-a_err)):
-                    better_elements.append(element)
-            better_isotopes.append(better_elements)
-            
-        for b,m in zip(better_isotopes,mu):
-            print('Gamma Energy ::', m, ' keV')
-            for ele in b:
-                print(ele['Nuclide'], ' -- Halflife:', ele['Half life(s)'])
-            
-def maxInuclide(db, nuclide):
-    nuc = [item for item in db if item['Nuclide'] == nuclide]
-    maxI, maxE = 0, 0
-    for gamma in nuc:
-        if gamma['Intensity'] > maxI:
-            maxI = gamma['Intensity']
-            maxE = gamma['Energy(keV)']
-    return maxE, maxI
-
-def top2Inuclide(db, nuclide):
-    nuc = [item for item in db if item['Nuclide'] == nuclide]
-    top_energies = [0, 0]
-    i1, i2 = 0, 0
-    for gamma in nuc:                     #first
-        if gamma['Intensity'] > i1:
-            i1=gamma['Intensity']
-            top_energies[0] = gamma['Energy(keV)']
-    for gamma in nuc:                     #second
-        if (gamma['Intensity'] > i2) and (gamma['Intensity'] != i1):
-            i2=gamma['Intensity']
-            top_energies[1] = gamma['Energy(keV)']
-    return top_energies
-          
+    return sum(newfit.func(newfit.p0, x))*width          
         
 def searchdb(db, key, value):
     return [item for item in db if item[key] == value]

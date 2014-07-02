@@ -49,6 +49,13 @@ class function:
         plt.plot(x, self.func(self.p0, x))
     def f(self, x):
         return self.func(self.p0, x)
+    def peak(self, step_size=0.1):
+        steps = (self.xmax-self.xmin)/step_size
+        x=np.linspace(self.xmin, self.xmax, steps)
+        y=self.func(self.p0, x)
+        ypeak = max(y)
+        xpeak = x[np.where(y==ypeak)[0][0]]
+        return xpeak, ypeak
     
 # Finally a bunch of functions often used in fitting
 gauss = lambda x, m, s: (s**2*2*np.pi)**(-1/2)*np.exp(-1/2*(x-m)**2/s**2)

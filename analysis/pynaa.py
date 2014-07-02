@@ -10,6 +10,7 @@ import math
 # User classes for pynaa
 #import mfit as mf
 import peakfinder as pf
+from radionuclide import radionuclide
 
 # Note: All code makes its way here, as a member of PyNaa
 
@@ -29,7 +30,9 @@ class analyzer:
     '''
 
     def __init__(self, files, t_begin=0):
-        self.filelist = [naafile(f) for f in files if f.endswith('.npz')]
+        self.filelist=[]
+        for f in files:
+            self.add_file(f)
         self.t_begin = t_begin
 
     def add_file(self, filename):
@@ -38,6 +41,8 @@ class analyzer:
         except (NameError, FileNotFoundError, OSError) as er:
             print(er)
 
+    
+            
     # In order to analyze, need json gamma file, 
     
 # Naa data file, as .npz (or later hdf5) ... I'm deprecating .spe
@@ -53,7 +58,7 @@ class naafile:
     x,y (spectrum)
     '''
     
-    def __init__(self, name):
+    def __init__(self, name, gammadb='../database/gammalist.json'):
         self.filename = name
         extension = name.split('.')[-1]
         if not os.path.isfile(name):
@@ -65,9 +70,17 @@ class naafile:
         else:
             raise NameError(extension + ' not supported')
         # TODO: check if valid .npz and is naa file
+        if os.path.isfile(gammadb):
+            self.gammadb = gammadb
         self.prepare_data()
+        # 
 
     def prepare_data(self):
+        '''
+        Loads the data from the npz file into np.arrays
+        This initialized: self.data, self.x, self.y, self.nfo
+        self.tstart, self.tstop, and self.deadtime
+        '''
         self.data = np.load(self.filename)
         self.x, self.y = self.data['x'], self.data['y']
         self.nfo = self.data['info'].tolist()
@@ -78,10 +91,22 @@ class naafile:
     def do_all(self):
         # Apply all analysis requirements, in order, in one shot
         self.peaks()
+        self.findradionuclides()
             
     def peaks(self):
         self.fits, self.xpeaks, self.ypeaks = pf.find_peaks(self.x, self.y)
 
+    def findradionuclides(self):
+        '''
+        Given a gamma json file, using the fitted peaks, this will attempt
+        to identify the elements producing the gammas
+        '''
+        if not hasattr(self, 'fits'):
+            self.peaks()
+        if hasattr(self, 'gammadb'):
+            self.nuclides = radionuclide(self.gammadb, self.fits)
+        else:
+            print('Gamma database not given or does not exist')
 
     ### Draw options
     '''
@@ -99,3 +124,10 @@ class naafile:
 
     def drawdata(self):
         plt.plot(self.x, self.y)
+
+    ### Print options
+    def printnuclides(self):
+        if hasattr(self, 'nuclides'):
+            self.nuclides.write_isotopes()
+        else:
+            print('Need to run self.findradionculides first')
