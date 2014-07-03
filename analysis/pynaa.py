@@ -6,11 +6,14 @@ import sys, os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import math
+import json
+import copy
 
 # User classes for pynaa
 #import mfit as mf
 import peakfinder as pf
 from radionuclide import radionuclide
+from limitfinder import limitfinder
 
 # Note: All code makes its way here, as a member of PyNaa
 
@@ -27,17 +30,55 @@ from radionuclide import radionuclide
 class analyzer:
     '''
     Primary analysis tool to compare multiple pynaa.files
+    Files classify (currently) into three types: sample, control(spike), background
+    Sample files contain the unknown data
+    Control has known masses
+    Background doesn't have a sample, determining backgrounds of the Ge detector
     '''
 
-    def __init__(self, files, t_begin=0):
-        self.filelist=[]
-        for f in files:
-            self.add_file(f)
-        self.t_begin = t_begin
+    def __init__(self, config=None):
+        if config == None:
+            self.default_config()
+        else:
+            self.set_config(config)
+        self.controllist = []
+        self.samplelist = []
+        self.bkglist = []
+        self.load_config()
+            
+    def default_config(self):
+        '''
+        If there isn't a config file given, assume some default values
+        In this case, no spikes or bkg subtraction
+        '''
+        self.config = { "sample name": "Default",
+                        "sample mass": 0.0,
+                        "backgrounds": [],
+                        "exposure start": 86400.0,
+                        "reactor power": 1.0,
+                        "exposure time": 1,
+                        "neutron flux": 1e10,
+                        "samples": [] }
+        
+    def set_config(self, config_file):
+        '''
+        Currently assumes the config file contains the correct variables...
+        config_file must be json, loads into a dictionary
+        '''
+        with open(config_file, 'r') as fname:
+            try:
+                self.config = json.load(fname)
+            except ValueError:
+                print(fname, 'is not a valid JSON object')
+                self.default_config()
 
-    def add_file(self, filename):
+
+    def find_limits(self):
+        limitfinder.run()
+                
+    def add_file(self, filename, filelist):
         try:
-            self.filelist.append(naafile(filename))
+            filelist.append(naafile(filename))
         except (NameError, FileNotFoundError, OSError) as er:
             print(er)
 
@@ -73,8 +114,39 @@ class naafile:
         if os.path.isfile(gammadb):
             self.gammadb = gammadb
         self.prepare_data()
-        # 
 
+    def __add__(self, other):
+        if type(other) == type(self):
+            newfile = copy.copy(self)
+            newfile.y = newfile.y + other.y
+            newfile.tstart = float(min(newfile.tstart, other.tstart))
+            t1, t2 = self.tstop - self.tstart, other.tstop-other.tstart
+            newfile.tstop = newfile.tstart+t1+t2
+            newfile.deadtime = (t1*self.deadtime+t2*other.deadtime)/(t1+t2)
+            return newfile
+        else:
+            return self
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        if type(other) == type(self):
+            newfile = copy.copy(self)
+            newfile.y = newfile.y - other.y
+            newfile.tstart = float(min(newfile.tstart, other.tstart))
+            t1, t2 = self.tstop - self.tstart, other.tstop-other.tstart
+            newfile.tstop = newfile.tstart+t1-t2
+            newfile.deadtime = (t1*self.deadtime+t2*other.deadtime)/(t1+t2)
+            return newfile
+        else:
+            return self
+
+    def time_normalize(self):
+        dt = self.tstop - self.tstart
+        self.y = self.y / dt
+        self.tstart, self.tstop = 0, 1
+        
     def prepare_data(self):
         '''
         Loads the data from the npz file into np.arrays
