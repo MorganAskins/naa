@@ -31,7 +31,10 @@ class graph:
         xmin, xmax = np.where(self.x>=func.xmin)[0][0], np.where(self.x<=func.xmax)[0][-1]
         fitout = ls(residual, p0, args=(self.x[xmin:(xmax+1)], self.y[xmin:(xmax+1)]))
         func.p0, func.covariance = fitout[0], fitout[1]
-
+    def integrate(self, xmin, xmax):
+        xmindx, xmaxdx = np.where(self.x>=xmin)[0][0], np.where(self.x<=xmax)[0][-1]
+        return sum(self.y[xmindx:xmaxdx]), len(self.y[xmindx:xmaxdx])
+        
 class function:
     def __init__(self, func, p0=[0], xmin=0, xmax=-1):
         self.p0=p0
