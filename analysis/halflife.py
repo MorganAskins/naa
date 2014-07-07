@@ -35,12 +35,12 @@ class halflife:
 	
 	def choosepeak(self, a):
 		activity=[]
-		time=[]
-		runtimes=[]
+		starttime=[]
+		counttimes=[]
 		plot=0
 		for d in a:
 			x,y=d.x,d.y
-			runtimes.append(float(d.tstop))
+			counttimes.append(float(d.tstop-d.tstart))
 			if plot==0:
 				plt.ion()
 				plt.plot(x,y) #Uses first file for user to choose peak of interest
@@ -60,30 +60,30 @@ class halflife:
 			act=totact-bg
 			activity.append(act)
 			t=float(d.tstart) #No adjustments for run time or live time yet
-			time.append(t)
-		tmin=min(time)
+			starttime.append(t)
+		tmin=min(starttime)
 		ttime=[]
-		for v in time:
+		for v in starttime:
 			s=v-tmin
 			ttime.append(s)
-		unsorted=zip(ttime, activity, runtimes)
+		unsorted=zip(ttime, activity, counttimes, starttime)
 		sortedareas=sorted(unsorted, key = lambda t: t[0])#Organize peak areas chronologically
 		return sortedareas
 	
 	def timescaleact(self, x):
 		ttime=[i[0] for i in x]
 		activity=[i[1] for i in x]
-		runtimes=[i[2] for i in x]
-		mtot=max(runtimes)
+		counttimes=[i[2] for i in x]
+		mtot=max(counttimes)
 		scaling=[]
-		for p in runtimes:
+		for p in counttimes:
 			y=float(mtot/p)
 			scaling.append(y)
 		scactivity=[]
 		for u in activity:
 			u=u*scaling[activity.index(u)]
 			scactivity.append(u)
-		scaledact=zip(ttime, scactivity, runtimes)
+		scaledact=zip(ttime, scactivity, counttimes)
 		scaledact=sorted(scaledact)
 		return scaledact
 	
@@ -92,7 +92,7 @@ class halflife:
 		ttime=[i[0] for i in r]
 		activity=[i[1] for i in t]
 		scactivity=[i[1] for i in r]
-		runtimes=[i[2] for i in r]
+		counttimes=[i[2] for i in r]
 		ffunc = lambda p, x: p[0]*np.exp(-x*p[1])
 		gr=mf.graph(np.array(ttime), np.array(scactivity))
 		p0=[30000, 1/42000]   #Constants chosen arbitrarily
@@ -114,7 +114,7 @@ class halflife:
 		ttime=[i[0] for i in a]
 		activity=[i[1] for i in b]
 		scactivity=[i[1] for i in a]
-		runtimes=[i[2] for i in a]
+		counttimes=[i[2] for i in a]
 		k=0
 		allhls=[]
 		while k < len(ttime):
@@ -122,9 +122,9 @@ class halflife:
 			while p < len(ttime)-1:			
 				p=p+1
 				ti1=ttime[k]
-				tf1=ttime[k]+runtimes[k]
+				tf1=ttime[k]+counttimes[k]
 				ti2=ttime[p]
-				tf2=ttime[p]+runtimes[p]
+				tf2=ttime[p]+counttimes[p]
 				A=activity[k]/activity[p]
 				afun= lambda x, y, z, a: a*(np.exp(-x*y)-np.exp(-x*z))
 				#print(afun(x, ti1, tf1, 1))
