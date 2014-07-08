@@ -52,7 +52,7 @@ def parse(xhtml):
             betterline = re.sub(r'<.+?>', ' ', line)
             betterline = re.sub(r'\(\s(.+?)\)', r'(\g<1>)', betterline)
             betterline = betterline.strip()
-            betterline = re.sub(r'\(([^\s]*)\s([^\s]*)\s([^\s]*)\)', '\g<1> \g<2>\g<3>', betterline)
+            betterline = re.sub(r'\(([^\s]*)\s([^\s]*)\s([^\s]*)\)', '\g<1> \g<2>*\g<3>', betterline)
             betterline = betterline.split()[0:5]
             # Strip the errors from the energy
             betterline[0] = re.sub(r'\(.+?\)', '', betterline[0])
