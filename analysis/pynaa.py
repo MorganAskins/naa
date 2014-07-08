@@ -12,7 +12,7 @@ import copy
 # User classes for pynaa
 #import mfit as mf
 import peakfinder as pf
-import naafile
+from naafile import naafile
 from radionuclide import radionuclide
 from limitfinder import limitfinder
 

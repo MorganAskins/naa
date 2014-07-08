@@ -62,27 +62,40 @@ class limitfinder:
         self.set_backgrounds()
         for spike_dict, ctrl in zip(self.topspikelist, self.controllist):
             for spikes in spike_dict:
-                self.find_spike(spikes['isotope'], ctrl)
+                self.find_spike(spikes, ctrl)
             
 
     def set_backgrounds(self):
         if len(self.bkglist) == 0:
             return                        #no backgrounds
-        self.bkgnaafile = sum(bkglist)
+        self.bkgnaafile = sum(self.bkglist)
 
-    def find_spike(self, spike_name, ctrl):
-        #For now, just look for highest intensity peak
+    def find_spike(self, spike, ctrl):
+        # For now, just look for highest intensity peak
+        # Here are some potential problems that need to be solved:
+        # (Can be solved from the fits, needs a goodness of fit...)
+        # 
+        spike_name = spike['isotope']
         spike_energy = maxIenergy(self.gammadb, spike_name)
         print('Looking for', spike_name, 'at', spike_energy)
         halflife = eval(searchdb(self.gammadb,'Nuclide',spike_name)[0]['Half life(s)'])
         L = math.log(2)/halflife
-        print(' -- halflife: ', halflife)
         correction = lambda ti, tf: np.exp(-L*ti)-np.exp(-L*tf)
-        filesum = 0
+        control_area_sum, sample_area_sum = 0, 0
+        control_time_sum, sample_time_sum = 0, 0
+        ## Errors:
+        control_err_sq, sample_err_sq = 0, 0
+        
         ## Use fits to set these magic numbers TODO
-        halfwidth = 1
-        pastwidth = 0.5
-        ####
+        halfwidth, pastwidth = self.peak_info(spike, ctrl)
+        #halfwidth = 5
+        #pastwidth = 5
+        print('halfwidth:', halfwidth, 'pastwidth:', pastwidth)
+        if halfwidth < 1:
+            halfwidth = 1
+        if pastwidth < 1:
+            pastwidth = 1
+            
         for nfile in ctrl:
             graph = mf.graph(nfile.x, nfile.y)
             integral, steps = graph.integrate(spike_energy-halfwidth, spike_energy+halfwidth)
@@ -90,12 +103,68 @@ class limitfinder:
             bkg_right, steps_right = graph.integrate(spike_energy+halfwidth, spike_energy+halfwidth+pastwidth)
             start_time = nfile.tstart - self.start_time
             stop_time = nfile.tstop - self.start_time
-            ctime = correction(start_time, stop_time)
-            print('start_time', start_time, 'stop_time', stop_time, 'ctime', ctime)
-            filesum += (integral - (bkg_left+bkg_right)*(steps/(steps_left+steps_right)))*ctime
-        print(filesum)
+            ## Only include files with 2 sigma over bkg
+            areasum = integral - (bkg_left+bkg_right)*(steps/(steps_left+steps_right))
+            areaerr_sq = integral
+            if areasum >= 3*math.sqrt(areaerr_sq):
+                control_time_sum += correction(start_time, stop_time)
+                control_area_sum += areasum
+                control_err_sq += areaerr_sq
+        print('control area:', '{:.3e}'.format(control_area_sum), '+/-', '{:.3e}'.format(math.sqrt(control_err_sq)))
         
-        
+        for nfile in self.samplelist:
+            graph = mf.graph(nfile.x, nfile.y)
+            integral, steps = graph.integrate(spike_energy-halfwidth, spike_energy+halfwidth)
+            bkg_left, steps_left = graph.integrate(spike_energy-halfwidth-pastwidth, spike_energy-halfwidth)
+            bkg_right, steps_right = graph.integrate(spike_energy+halfwidth, spike_energy+halfwidth+pastwidth)
+            start_time = nfile.tstart - self.start_time
+            stop_time = nfile.tstop - self.start_time
+            ## Only include files with 2 sigma over bkg
+            areasum = integral - (bkg_left+bkg_right)*(steps/(steps_left+steps_right))
+            areaerr_sq = math.sqrt(integral)
+            if areasum >= 3*math.sqrt(areaerr_sq):
+                sample_time_sum += correction(start_time, stop_time)
+                sample_area_sum += areasum
+                sample_err_sq += areaerr_sq
+        print('sample area:', '{:.3e}'.format(sample_area_sum), '+/-', '{:.3e}'.format(math.sqrt(sample_err_sq)))
+        print('sample mass:', '{:.3e}'.format(self.sample_mass))
+        print('spike mass:', '{:.3e}'.format(spike['mass']))
+        result = (sample_area_sum*spike['mass']*control_time_sum)/(control_area_sum*sample_time_sum*self.sample_mass)
+        result_err = result*math.sqrt(sample_err_sq/sample_area_sum**2 + control_err_sq/control_area_sum**2)
+        print('!! Results:', '{:.3e}'.format(result), '+/-','{:.3e}'.format(result_err), 'g/g', spike_name)
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+
+    def peak_info(self, spike, ctrl):
+        ffunc = lambda p, x: p[0]*mf.compshoulder(x, p[1], p[2], p[3])+p[4]
+        spike_energy = maxIenergy(self.gammadb, spike['isotope'])
+        fit_distance = 40
+        fits=[]
+        # Fit each control file at the specified peak
+        for nfile in ctrl:
+            x,y = nfile.x, nfile.y
+            gr = mf.graph(x, y)
+            peak = np.where(x <= spike_energy)[0][-1]
+            xmin, xmax = (peak-fit_distance), (peak+fit_distance)
+            bwidth = (x[xmax]-x[xmin])/len(x[xmin:xmax])
+            p0 = [(sum(y[xmin:xmax])-len(y[xmin:xmax])*min(y[xmin:xmax]))*bwidth/math.pi,
+                  spike_energy, 1, 0.5, min(y[xmin:xmax])]
+            fitter = mf.function(ffunc, p0, x[xmin], x[xmax])
+            gr.fit(fitter)
+            fits.append(fitter)
+        # Determine which peak is the cleanest, and what width to integrate
+        best_fit = 0
+        peakbgratio = 0
+        for idx, fit in enumerate(fits):
+            ratio = fit.p0[0] / fit.p0[4]
+            if ratio > peakbgratio:
+                peakbgratio = ratio
+                best_fit = idx
+            
+        halfwidth = (fits[best_fit].p0)[3]*math.log(20)
+        pastwidth = halfwidth
+        return halfwidth, pastwidth
+            
+                
     def add_file(self, filename, filelist):
         try:
             filelist.append(naafile(filename))

@@ -35,7 +35,7 @@ def setup():
         num_spikes = int(input('\033[0;36mHow many spikes in the control?:\033[37m '))
         for spikes in range(num_spikes):
             spike_dict={}
-            spike_dict['isotope(eg. He-4)'] = input('\033[0;33m -- Isotope:\033[37m ')
+            spike_dict['isotope'] = input('\033[0;33m -- Isotope(eg. He-4):\033[37m ')
             spike_dict['mass'] = float(input('\033[0;33m    || Mass(g):\033[37m '))
             ctrl_dict['spike <'+str(spikes)+'>'] = spike_dict
         config[name] = ctrl_dict

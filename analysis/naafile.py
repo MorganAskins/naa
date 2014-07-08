@@ -6,6 +6,9 @@ import math
 import json
 import copy
 
+import peakfinder as pf
+from radionuclide import radionuclide
+
 # Naa data file, as .npz (or later hdf5) ... I'm deprecating .spe
 class naafile:
     '''
