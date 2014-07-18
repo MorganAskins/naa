@@ -6,10 +6,10 @@
     },
     "name": "ThK",
     "controls": [
-      "../data/SNO+/PPO_ThK_spiked_06112014_000.npz",
-      "../data/SNO+/PPO_ThK_spiked_06242014_000.npz",
-      "../data/SNO+/PPO_ThK_spiked_06122014_000.npz",
-      "../data/SNO+/PPO_ThK_spiked_06242014_001.npz"
+      "data/SNO+/PPO_ThK_spiked_06112014_000.npz",
+      "data/SNO+/PPO_ThK_spiked_06242014_000.npz",
+      "data/SNO+/PPO_ThK_spiked_06122014_000.npz",
+      "data/SNO+/PPO_ThK_spiked_06242014_001.npz"
     ],
     "mass": 1.0,
     "spike <0>": {
@@ -21,9 +21,9 @@
   "control <1>": {
     "name": "U",
     "controls": [
-      "../data/SNO+/PPO_U_spiked_06122014_000.npz",
-      "../data/SNO+/PPO_U_spiked_clean_vial_06122014_000.npz",
-      "../data/SNO+/PPO_U_spiked_06112014_000.npz"
+      "data/SNO+/PPO_U_spiked_06122014_000.npz",
+      "data/SNO+/PPO_U_spiked_clean_vial_06122014_000.npz",
+      "data/SNO+/PPO_U_spiked_06112014_000.npz"
     ],
     "mass": 1.2,
     "spike <0>": {
@@ -37,21 +37,21 @@
   "sample name": "PPO",
   "exposure start": 1400841863.0,
   "samples": [
-    "../data/SNO+/PPO_control_06132014_006.npz",
-    "../data/SNO+/PPO_control_06132014_005.npz",
-    "../data/SNO+/PPO_control_06132014_004.npz",
-    "../data/SNO+/PPO_control_06132014_009.npz",
-    "../data/SNO+/PPO_control_06112014_000.npz",
-    "../data/SNO+/PPO_control_06132014_008.npz",
-    "../data/SNO+/PPO_control_06132014_002.npz",
-    "../data/SNO+/PPO_control_06132014_003.npz",
-    "../data/SNO+/PPO_control_06122014_001.npz",
-    "../data/SNO+/PPO_control_06122014_000.npz",
-    "../data/SNO+/PPO_control_06132014_001.npz",
-    "../data/SNO+/PPO_control_06132014_000.npz",
-    "../data/SNO+/PPO_control_06132014_007.npz",
-    "../data/SNO+/PPO_control_06112014_001.npz",
-    "../data/SNO+/PPO_control_06112014_002.npz"
+    "data/SNO+/PPO_control_06132014_006.npz",
+    "data/SNO+/PPO_control_06132014_005.npz",
+    "data/SNO+/PPO_control_06132014_004.npz",
+    "data/SNO+/PPO_control_06132014_009.npz",
+    "data/SNO+/PPO_control_06112014_000.npz",
+    "data/SNO+/PPO_control_06132014_008.npz",
+    "data/SNO+/PPO_control_06132014_002.npz",
+    "data/SNO+/PPO_control_06132014_003.npz",
+    "data/SNO+/PPO_control_06122014_001.npz",
+    "data/SNO+/PPO_control_06122014_000.npz",
+    "data/SNO+/PPO_control_06132014_001.npz",
+    "data/SNO+/PPO_control_06132014_000.npz",
+    "data/SNO+/PPO_control_06132014_007.npz",
+    "data/SNO+/PPO_control_06112014_001.npz",
+    "data/SNO+/PPO_control_06112014_002.npz"
   ],
   "reactor power": 1.0
 }

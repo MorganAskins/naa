@@ -18,7 +18,7 @@ class radionuclide(modifier):
             # data file needs peaks
             if not hasattr(datafile, 'fits'):
                 datafile.fits, datafile.xpeaks, datafile.ypeaks=pf.find_peaks(datafile.x, datafile.y)
-                self.peaks2isotopes(datafile)
+            self.peaks2isotopes(datafile)
 
     def output(self):
         for datafile in self.datacollection.openfiles:

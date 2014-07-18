@@ -16,7 +16,20 @@ class heart:
         self.database = database
         self.datacollection = datacollection
         self.experiment = experiment
+        self.load_experiment()
         self.mods = []
+
+    def load_experiment(self):
+        if self.experiment == None:
+            return
+        xp = self.experiment
+        for sample in xp.samplelist:
+            self.datacollection.add_file(sample, 'sample')
+        for control_nest in xp.control_nested_list:
+            for control in control_nest:
+                self.datacollection.add_file(control, 'control')
+        for background in xp.bkglist:
+            self.datacollection.add_file(background, 'background')
         
     def add_modifier(self, mod):
         if issubclass(mod, modifier.modifier):

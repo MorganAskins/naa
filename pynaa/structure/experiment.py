@@ -6,6 +6,7 @@ class experiment:
         openfile = open(self.configfile, 'r')
         self.config = json.load(openfile)
         openfile.close()
+        self.load_config()
 
     def load_config(self):
         '''
@@ -33,6 +34,6 @@ class experiment:
         self.controlname = [ (self.config[cname])['name'] for cname in cnames_exist ]
         for idx, ctrls in enumerate(cnames_exist):
             ctrl_dict = self.config[ctrls]
-            self.controllist[idx] = ctrl_dict['controls']
+            self.control_nested_list[idx] = ctrl_dict['controls']
             snames_exist = [sname(i) for i in range(max_controls) if sname(i) in ctrl_dict]
             self.spike_nested_list.append([ctrl_dict[sname] for sname in snames_exist])
